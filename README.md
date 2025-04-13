@@ -92,7 +92,13 @@ go mod download
 go run cmd/api/main.go
 ```
 
-3. สร้าง build สำหรับนำไปใช้งาน
+3. รันการทดสอบ
+
+```bash
+go test ./internal/...
+```
+
+4. สร้าง build สำหรับนำไปใช้งาน
 
 ```bash
 go build -o manta-dashboard-api ./cmd/api
@@ -298,8 +304,40 @@ curl http://your-server:8080/api/health
 
 ---
 
-## 7. Future Enhancements
+## 7. Testing
+
+โปรเจคนี้มีการทดสอบครอบคลุมทั้งในส่วนของ services และ handlers โดยใช้ Go testing framework และ testify
+
+### การรันทดสอบ
+
+รันทดสอบทั้งหมด:
+
+```bash
+go test ./internal/...
+```
+
+รันทดสอบและแสดงรายละเอียด:
+
+```bash
+go test -v ./internal/...
+```
+
+รันทดสอบเฉพาะ service:
+
+```bash
+go test ./internal/services/...
+```
+
+รันทดสอบเฉพาะ handler:
+
+```bash
+go test ./internal/api/handlers/...
+```
+
+## 8. Future Enhancements
 
 - เพิ่ม websocket สำหรับส่งข้อมูลแบบ real-time
 - เพิ่ม endpoint แสดงความหนาแน่นตามตำแหน่ง (heatmap บนแผนที่)
 - Export CSV/PDF จาก dashboard
+- เพิ่มเติมการทดสอบที่ครอบคลุมมากขึ้น
+- เพิ่มระบบ CI/CD และ automated testing
