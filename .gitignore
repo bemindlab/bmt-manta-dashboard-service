@@ -1,0 +1,57 @@
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Go workspace
+/vendor/
+/go.sum
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Firebase
+config/firebase-credentials.json
+firebase-debug.log
+firebase-debug.*.log
+
+# Logs
+*.log
+logs/
+
+# Binary files
+bin/
+dist/
+
+# Docker
+.docker/
+
+# Test coverage
+coverage.txt
+
+# Temporary files
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies
+node_modules/
+yarn-error.log 

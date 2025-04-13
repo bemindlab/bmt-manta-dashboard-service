@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: manta-dashboard-api
+    restart: always
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - ENV=${ENV:-production}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-manta_dashboard}
+      - POSTGRES_SSL_MODE=${POSTGRES_SSL_MODE:-disable}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CREDENTIALS_FILE=/app/config/firebase-credentials.json
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${REDIS_DB:-0}
+      - JWT_SECRET=${JWT_SECRET:-default-jwt-secret}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - API_KEY=${API_KEY:-default-api-key}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      - RATE_LIMIT_DURATION=${RATE_LIMIT_DURATION:-60s}
+    volumes:
+      - ./config/firebase-credentials.json:/app/config/firebase-credentials.json
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - manta-network
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: manta-postgres
+    restart: always
+    ports:
+      - "${POSTGRES_PORT_EXT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-manta_dashboard}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - manta-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: manta-redis
+    restart: always
+    ports:
+      - "${REDIS_PORT_EXT:-6379}:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - manta-network
+
+networks:
+  manta-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:

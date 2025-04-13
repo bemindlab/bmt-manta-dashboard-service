@@ -1,0 +1,899 @@
+basePath: /api
+definitions:
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.FaceImagesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.FaceImage'
+        type: array
+      pagination:
+        $ref: '#/definitions/models.Pagination'
+    type: object
+  handlers.ListCamerasResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Camera'
+        type: array
+      pagination:
+        $ref: '#/definitions/models.Pagination'
+    type: object
+  handlers.ListOrganizationsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Organization'
+        type: array
+      pagination:
+        $ref: '#/definitions/models.Pagination'
+    type: object
+  handlers.LogsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.PersonLog'
+        type: array
+      pagination:
+        $ref: '#/definitions/models.Pagination'
+    type: object
+  handlers.SuccessResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  models.Camera:
+    properties:
+      created_at:
+        description: When camera was created
+        type: string
+      id:
+        description: Unique identifier
+        type: string
+      location:
+        description: Optional physical location description
+        type: string
+      name:
+        description: Display name
+        type: string
+      organization_id:
+        description: Organization that owns the camera
+        type: string
+      status:
+        description: Status (active, inactive, etc.)
+        type: string
+      updated_at:
+        description: When camera was last updated
+        type: string
+    type: object
+  models.DailySummary:
+    properties:
+      date:
+        description: Date in YYYY-MM-DD format
+        type: string
+      new:
+        description: Count of new people
+        type: integer
+      repeat:
+        description: Count of repeat visitors
+        type: integer
+      total:
+        description: Total count of people
+        type: integer
+    type: object
+  models.FaceImage:
+    properties:
+      camera_id:
+        description: Camera that took this image
+        type: string
+      created_at:
+        description: When the image was created
+        type: string
+      id:
+        description: Unique identifier
+        type: string
+      image_url:
+        description: URL to the full image
+        type: string
+      organization_id:
+        description: Organization that owns this image
+        type: string
+      person_hash:
+        description: Hash of the person this face belongs to
+        type: string
+      thumbnail_url:
+        description: URL to a smaller thumbnail (optional)
+        type: string
+    type: object
+  models.HeatmapData:
+    properties:
+      count:
+        description: Number of people detected during this hour
+        type: integer
+      hour:
+        description: Hour of the day in 24-hour format (e.g. "08:00", "14:00")
+        type: string
+    type: object
+  models.Organization:
+    properties:
+      created_at:
+        description: When the organization was created
+        type: string
+      description:
+        description: Optional description
+        type: string
+      id:
+        description: Unique identifier for organization
+        type: string
+      name:
+        description: Organization name
+        type: string
+      updated_at:
+        description: When the organization was last updated
+        type: string
+    type: object
+  models.Pagination:
+    properties:
+      page:
+        description: Current page number (starting from 1)
+        type: integer
+      page_size:
+        description: Number of items per page (max 100)
+        type: integer
+      total:
+        description: Total number of items
+        type: integer
+      total_page:
+        description: Total number of pages
+        type: integer
+    type: object
+  models.PersonLog:
+    properties:
+      camera_id:
+        description: ID of the camera that captured this person
+        type: string
+      created_at:
+        description: Time when the record was created in database
+        type: string
+      id:
+        description: Unique identifier for this log entry
+        type: string
+      is_new_person:
+        description: Whether this is the first time this person was detected
+        type: boolean
+      organization_id:
+        description: Organization that owns this log
+        type: string
+      person_hash:
+        description: Unique hash to identify this person
+        type: string
+      timestamp:
+        description: Time when the person was detected
+        type: string
+    type: object
+  models.PersonStats:
+    properties:
+      new:
+        description: Count of new people
+        type: integer
+      repeat:
+        description: Count of repeat visitors
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for BMT Manta Dashboard Service
+  title: BMT Manta Dashboard Service API
+  version: "1.0"
+paths:
+  /api/cameras:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all cameras in the organization with pagination
+      parameters:
+      - default: 1
+        description: Page number (starting from 1)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page (max 100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ListCamerasResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all cameras
+      tags:
+      - cameras
+    post:
+      consumes:
+      - application/json
+      description: Create a new camera in the organization
+      parameters:
+      - description: Camera details
+        in: body
+        name: camera
+        required: true
+        schema:
+          $ref: '#/definitions/models.Camera'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Camera'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new camera
+      tags:
+      - cameras
+  /api/cameras/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a camera by ID
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Camera not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a camera
+      tags:
+      - cameras
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific camera by its ID
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Camera'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Camera not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get camera by ID
+      tags:
+      - cameras
+    put:
+      consumes:
+      - application/json
+      description: Update an existing camera's details
+      parameters:
+      - description: Camera ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated camera details
+        in: body
+        name: camera
+        required: true
+        schema:
+          $ref: '#/definitions/models.Camera'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Camera'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Camera not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a camera
+      tags:
+      - cameras
+  /api/faces:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an image of a person's face for training AI models
+      parameters:
+      - description: Face image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Person's unique hash
+        in: formData
+        name: person_hash
+        required: true
+        type: string
+      - description: ID of the camera that captured the image
+        in: formData
+        name: camera_id
+        required: true
+        type: string
+      - description: Organization ID
+        in: formData
+        name: organization_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.FaceImage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "413":
+          description: File too large
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Upload a face image
+      tags:
+      - faces
+  /api/faces/{person_hash}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve face images for a specific person
+      parameters:
+      - description: Person's unique hash
+        in: path
+        name: person_hash
+        required: true
+        type: string
+      - default: 1
+        description: Page number (starting from 1)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page (max 100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.FaceImagesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get face images by person hash
+      tags:
+      - faces
+  /api/faces/image/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific face image by ID
+      parameters:
+      - description: Face image ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Face image not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a face image
+      tags:
+      - faces
+  /api/heatmap:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve people count data by hour for the specified date
+      parameters:
+      - description: Date to retrieve data for (format YYYY-MM-DD). If not specified,
+          current date will be used.
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.HeatmapData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get heatmap data by time period
+      tags:
+      - summary
+  /api/logs:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve person detection logs based on specified filters
+      parameters:
+      - description: Start time for log retrieval (format YYYY-MM-DDTHH:MM:SS)
+        in: query
+        name: from
+        type: string
+      - description: End time for log retrieval (format YYYY-MM-DDTHH:MM:SS)
+        in: query
+        name: to
+        type: string
+      - description: Camera ID to filter logs by
+        in: query
+        name: camera_id
+        type: string
+      - description: Person ID to filter logs by
+        in: query
+        name: person_id
+        type: string
+      - default: 1
+        description: Page number to retrieve (starting from 1)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page (max 100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LogsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve logs data with filtering
+      tags:
+      - logs
+  /api/organizations:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all organizations with pagination
+      parameters:
+      - default: 1
+        description: Page number (starting from 1)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page (max 100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ListOrganizationsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all organizations
+      tags:
+      - organizations
+    post:
+      consumes:
+      - application/json
+      description: Create a new organization with the provided details
+      parameters:
+      - description: Organization details
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/models.Organization'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new organization
+      tags:
+      - organizations
+  /api/organizations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an organization by ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Organization not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an organization
+      tags:
+      - organizations
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific organization by its ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Organization not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get organization by ID
+      tags:
+      - organizations
+    put:
+      consumes:
+      - application/json
+      description: Update an existing organization with the provided details
+      parameters:
+      - description: Organization ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated organization details
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/models.Organization'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Organization'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Organization not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an organization
+      tags:
+      - organizations
+  /api/person-stats:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve statistics about new vs. returning people for the specified
+        date
+      parameters:
+      - description: Date to retrieve data for (format YYYY-MM-DD). If not specified,
+          current date will be used.
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PersonStats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get new vs. returning person statistics
+      tags:
+      - summary
+  /api/summary:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve total, new, and returning people counts for the specified
+        date
+      parameters:
+      - description: Date to retrieve data for (format YYYY-MM-DD). If not specified,
+          current date will be used.
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DailySummary'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized (invalid or missing API key)
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get daily summary statistics
+      tags:
+      - summary
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"
